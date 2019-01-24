@@ -1,7 +1,7 @@
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
-from flask import flask, jsonify, request
+from flask import Flask, jsonify, request
 import hashlib
 import requests
 import json
@@ -82,7 +82,7 @@ class Blockchain:
             response = requests.get(f'http://{node}/chain')
 
             if response.status_code == 200:
-                if response.json()["length"] > min_length && self.check_chain(chain):
+                if response.json()["length"] > min_length and self.check_chain(chain):
                     min_length = response.json()["length"]
                     correct_chain = response.json()["chain"]
 
@@ -92,24 +92,25 @@ class Blockchain:
 
         return False
 
-    def proof_of_work(self):
+    def proof_of_work(self, last_block):
 
         proof = 0
 
-        while not check_proof(last_block["proof"], proof, self.hash(last_block)):
+        while not self.valid_proof(last_block["proof"], proof, self.hash(last_block)):
             proof += 1
 
         return proof
 
     @staticmethod
-    def check_proof(self, last_block, proof, last_hash):
+    def valid_proof(last_proof, proof, last_hash):
 
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
+
         return guess_hash[:4] == "0000"
 
     @staticmethod
-    def hash(self):
+    def hash(block):
 
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
@@ -120,17 +121,6 @@ class Blockchain:
 
 
 app = Flask(__name__)
-
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
-    args = parser.parse_args()
-    port = args.port
-
-    app.run(host='0.0.0.0', port=port)
-
 node_identifier = str(uuid4()).replace("-", "")
 blockchain = Blockchain()
 
@@ -165,7 +155,7 @@ def new_transaction():
     if not all(k in values for k in required):
         return "Missing a value", 400
 
-    index = blockchain.new_transaction(values["sende"], values["reciever"], values["amount"])
+    index = blockchain.new_transaction(values["sender"], values["reciever"], values["amount"])
 
     response = {
         "message": f"Your transaction will be added to block number {index}"
@@ -205,7 +195,7 @@ def register_nodes():
     return jsonify(response), 401
 
 
-@app.route("/nodes/resolve", methods=[GET])
+@app.route("/nodes/resolve", methods=["GET"])
 def create_consesus():
 
     replaced = blockchain.resolve_conflicts()
@@ -223,3 +213,13 @@ def create_consesus():
 
     return jsonify(response), 200
 
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
+    args = parser.parse_args()
+    port = args.port
+
+    app.run(host='0.0.0.0', port=port)
