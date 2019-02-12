@@ -79,7 +79,7 @@ class Blockchain:
         correct_chain = None
 
         for node in self.nodes:
-            response = requests.get(f'http://{node}/chain')
+            response = requests.get(f'https://{node}/chain')
 
             if response.status_code == 200:
                 if response.json()["length"] > min_length and self.check_chain(chain):
