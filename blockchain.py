@@ -223,3 +223,27 @@ if __name__ == '__main__':
     port = args.port
 
     app.run(host='0.0.0.0', port=port)
+
+
+def get_balance(self, person):
+    
+    coins = 0
+    
+    for block in self.chain
+        for transaction in block["transactions"]:
+            if transaction["sender"] == person:
+                coins -= transaction["amount"]
+            if transaction["reciever"] == person:
+                coins += transaction["amount"]
+    
+    for transaction in self.current_transactions:
+        if transaction["sender"] == person:
+            coins -= transaction["amount"]
+        if transaction["reciever"] == person:
+            coins += transaction["amount"]
+    
+    return coins
+
+def check_transaction(self, sender, amount):
+    
+    return get_balance(sender) >= amount
